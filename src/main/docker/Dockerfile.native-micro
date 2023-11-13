@@ -10,11 +10,11 @@
 #
 # Then, build the image with:
 #
-# docker build -f src/main/docker/Dockerfile.native-micro -t quarkus/product-service .
+# docker build -f src/main/docker/Dockerfile.native-micro -t quarkus/kotlin-quarkus-template .
 #
 # Then run the container using:
 #
-# docker run -i --rm -p 8080:8080 quarkus/product-service
+# docker run -i --rm -p 8080:8080 quarkus/kotlin-quarkus-template
 #
 ###
 FROM quay.io/quarkus/quarkus-micro-image:2.0
