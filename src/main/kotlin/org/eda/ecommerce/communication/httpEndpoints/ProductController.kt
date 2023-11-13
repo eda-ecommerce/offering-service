@@ -8,42 +8,45 @@ import org.eclipse.microprofile.openapi.annotations.Operation
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType
 import org.eclipse.microprofile.openapi.annotations.media.Schema
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter
-import org.eda.ecommerce.data.models.TestEntity
-import org.eda.ecommerce.services.TestEntityService
+import org.eda.ecommerce.data.models.CreateProductDTO
+import org.eda.ecommerce.data.models.Product
+import org.eda.ecommerce.services.ProductService
 import java.net.URI
 
-@Path("/entity")
-class TestEntityController {
+@Path("/products")
+class ProductController {
 
     @Inject
-    private lateinit var testEntityService: TestEntityService
+    private lateinit var productService: ProductService
 
 
     @GET
-    fun getAll(): List<TestEntity> {
-        return testEntityService.getAll()
+    fun getAll(): List<Product> {
+        return productService.getAll()
     }
 
     @GET
     @Path("/{id}")
     @Consumes(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Returns a TestEntity by its ID.")
+    @Operation(summary = "Returns a Product by its ID.")
     fun getById(
         @QueryParam("id")
         @Parameter(
             name = "id",
-            description = "The ID of the TestEntity to be returned.",
+            description = "The ID of the Product to be returned.",
             schema = Schema(type = SchemaType.NUMBER, format = "long")
         )
         id: Long
-    ): TestEntity {
-        return testEntityService.findById(id)
+    ): Product {
+        return productService.findById(id)
     }
 
     @POST
-    fun createNew(testEntity: TestEntity): Response {
-        testEntityService.createNewEntity(testEntity)
+    fun createNewProduct(productDTO: CreateProductDTO): Response {
+        val product = productDTO.toProduct()
 
-        return Response.created(URI.create("/entity/" + testEntity.id)).build()
+        productService.createNewProduct(product)
+
+        return Response.created(URI.create("/products/" + product.id)).build()
     }
 }
