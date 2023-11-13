@@ -36,8 +36,14 @@ quarkus:
 mp:
   messaging:
     outgoing:
+      test-out:
+        topic: "test"
+      test-acknowledged-out:
+        topic: "test-acknowledged"
       test-entity-out:
         topic: "test-entity"
     incoming:
+      test-in:
+        topic: "test"
       test-entity-in:
         topic: "test-entity"
