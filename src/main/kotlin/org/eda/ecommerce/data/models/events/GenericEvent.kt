@@ -1,5 +1,4 @@
 package org.eda.ecommerce.data.models.events
-
 open class GenericEvent(source: String, type: String) {
     var source: String? = source
     var timestamp: Long? = null
