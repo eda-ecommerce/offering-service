@@ -3,13 +3,13 @@ package org.eda.ecommerce.data.repositories
 import io.quarkus.hibernate.orm.panache.PanacheRepository
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.transaction.Transactional
-import org.eda.ecommerce.data.models.Product
+import org.eda.ecommerce.data.models.TestEntity
 
 @ApplicationScoped
-class ProductRepository : PanacheRepository<Product> {
+class TestEntityRepository : PanacheRepository<TestEntity> {
 
     @Transactional
-    fun persistWithTransaction(product: Product) {
-        super.persist(product)
+    fun persistWithTransaction(testEntity: TestEntity) {
+        super.persist(testEntity)
     }
 }
