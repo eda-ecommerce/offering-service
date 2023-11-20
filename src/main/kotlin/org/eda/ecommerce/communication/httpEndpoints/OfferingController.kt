@@ -9,53 +9,50 @@ import org.eclipse.microprofile.openapi.annotations.Operation
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType
 import org.eclipse.microprofile.openapi.annotations.media.Schema
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter
-import org.eda.ecommerce.data.models.TestEntity
-import org.eda.ecommerce.data.models.TestEntityDTO
-import org.eda.ecommerce.services.TestEntityService
+import org.eda.ecommerce.data.models.Offering
+import org.eda.ecommerce.data.models.OfferingDTO
+import org.eda.ecommerce.services.OfferingService
 import java.net.URI
 
-@Path("/entity")
-class TestEntityController {
+@Path("/offering")
+class OfferingController {
 
     @Inject
-    private lateinit var testEntityService: TestEntityService
+    private lateinit var offeringService: OfferingService
 
 
     @GET
-    fun getAll(): List<TestEntity> {
-        return testEntityService.getAll()
+    fun getAll(): List<Offering> {
+        return offeringService.getAll()
     }
 
     @GET
     @Path("/{id}")
     @Consumes(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Returns a TestEntity by its ID.")
+    @Operation(summary = "Returns a Offering by its ID.")
     fun getById(
         @QueryParam("id")
         @Parameter(
             name = "id",
-            description = "The ID of the TestEntity to be returned.",
+            description = "The ID of the Offering to be returned.",
             schema = Schema(type = SchemaType.NUMBER, format = "long")
         )
         id: Long
-    ): TestEntity {
-        return testEntityService.findById(id)
+    ): Offering {
+        return offeringService.findById(id)
     }
 
     @POST
-    @Transactional
-    fun createNew(testEntityDTO: TestEntityDTO): Response {
-        val testEntity = testEntityDTO.toTestEntity()
+    fun createNew(offeringDTO: OfferingDTO): Response {
+        val newOffering = offeringService.createNewEntity(offeringDTO)
 
-        testEntityService.createNewEntity(testEntity)
-
-        return Response.created(URI.create("/entity/" + testEntity.id)).build()
+        return Response.created(URI.create("/offering/" + newOffering.id)).build()
     }
 
     @PUT
     @Transactional
-    fun updateProduct(testEntity: TestEntity): Response {
-        val updated = testEntityService.updateTestEntity(testEntity)
+    fun updateOffering(offering: Offering): Response {
+        val updated = offeringService.updateOffering(offering)
 
         return if (updated)
             Response.status(Response.Status.ACCEPTED).build()
@@ -65,16 +62,16 @@ class TestEntityController {
 
     @DELETE
     @Transactional
-    fun deleteProductById(
+    fun deleteOfferingById(
         @QueryParam("id")
         @Parameter(
             name = "id",
-            description = "The ID of the Product to be deleted.",
+            description = "The ID of the Offering to be deleted.",
             schema = Schema(type = SchemaType.NUMBER, format = "long")
         )
         id: Long
     ): Response {
-        val deleted = testEntityService.deleteById(id)
+        val deleted = offeringService.deleteById(id)
 
         return if (deleted)
             Response.status(Response.Status.ACCEPTED).build()

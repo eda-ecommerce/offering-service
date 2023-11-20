@@ -21,8 +21,8 @@ quarkus:
   kafka:
     devservices:
       topic-partitions:
-        test: 1
-        test-acknowledged: 1
+        product: 1
+        offering: 1
   hibernate-orm:
     database:
       generation: "update"
@@ -36,14 +36,8 @@ quarkus:
 mp:
   messaging:
     outgoing:
-      test-out:
-        topic: "test"
-      test-acknowledged-out:
-        topic: "test-acknowledged"
-      test-entity-out:
-        topic: "test-entity"
+      offering-out:
+        topic: "offering"
     incoming:
-      test-in:
-        topic: "test"
-      test-entity-in:
-        topic: "test-entity"
+      product-in:
+        topic: "product"

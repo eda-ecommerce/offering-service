@@ -2,7 +2,7 @@ package org.eda.ecommerce.data.repositories
 
 import io.quarkus.hibernate.orm.panache.PanacheRepository
 import jakarta.enterprise.context.ApplicationScoped
-import org.eda.ecommerce.data.models.TestEntity
+import org.eda.ecommerce.data.models.Offering
 
 @ApplicationScoped
-class TestEntityRepository : PanacheRepository<TestEntity>
+class OfferingRepository : PanacheRepository<Offering>
