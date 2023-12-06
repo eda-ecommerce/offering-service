@@ -1,30 +1,34 @@
 package org.eda.ecommerce.integration
 
-import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
-import io.quarkus.test.kafka.InjectKafkaCompanion
-import io.quarkus.test.kafka.KafkaCompanionResource
 import io.restassured.RestAssured.given
-import io.smallrye.reactive.messaging.kafka.companion.ConsumerTask
-import io.smallrye.reactive.messaging.kafka.companion.KafkaCompanion
+import io.smallrye.common.annotation.Identifier
 import io.vertx.core.json.JsonObject
 import jakarta.inject.Inject
 import jakarta.transaction.Transactional
+import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.clients.consumer.ConsumerRecords
+import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.common.serialization.StringDeserializer
 import org.eda.ecommerce.JsonSerdeFactory
 import org.eda.ecommerce.data.models.Product
 import org.eda.ecommerce.data.models.events.OfferingEvent
 import org.eda.ecommerce.data.repositories.OfferingRepository
 import org.eda.ecommerce.data.repositories.ProductRepository
 import org.junit.jupiter.api.*
+import java.time.Duration
+import java.util.*
 
 
 @QuarkusTest
-@QuarkusTestResource(KafkaCompanionResource::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class OfferingTest {
 
-    @InjectKafkaCompanion
-    lateinit var companion: KafkaCompanion
+    @Inject
+    @Identifier("default-kafka-broker")
+    lateinit var kafkaConfig: Map<String, Any>
+
+    lateinit var offeringConsumer: KafkaConsumer<String, OfferingEvent>
 
     @Inject
     lateinit var offeringRepository: OfferingRepository
@@ -35,23 +39,33 @@ class OfferingTest {
     @BeforeAll
     @Transactional
     fun setup() {
-        val offeringEventJsonSerdeFactory = JsonSerdeFactory<OfferingEvent>()
-        companion.registerSerde(
-            OfferingEvent::class.java,
-            offeringEventJsonSerdeFactory.createSerializer(),
-            offeringEventJsonSerdeFactory.createDeserializer(OfferingEvent::class.java)
-        )
-
         val product = Product().apply { id = 1 }
         productRepository.persist(product)
     }
 
     @BeforeEach
     @Transactional
-    fun recreateTestedTopics() {
-        companion.topics().delete("offering")
-        companion.topics().create("offering", 1)
+    fun deleteRepositoryData() {
         offeringRepository.deleteAll()
+    }
+
+    @BeforeEach
+    fun setupKafkaHelpers() {
+        val offeringEventJsonSerdeFactory = JsonSerdeFactory<OfferingEvent>()
+        offeringConsumer = KafkaConsumer(
+            consumerConfig(),
+            StringDeserializer(),
+            offeringEventJsonSerdeFactory.createDeserializer(OfferingEvent::class.java)
+        )
+    }
+
+    fun consumerConfig(): Properties {
+        val properties = Properties()
+        properties.putAll(kafkaConfig)
+        properties[ConsumerConfig.GROUP_ID_CONFIG] = "test-group-id"
+        properties[ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG] = "true"
+        properties[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
+        return properties
     }
 
     @Test
@@ -93,6 +107,8 @@ class OfferingTest {
 
     @Test
     fun testKafkaEmitOnPost() {
+        offeringConsumer.subscribe(listOf("offering"))
+
         val jsonBody: JsonObject = JsonObject()
             .put("quantity", 1)
             .put("price", 1.99F)
@@ -105,12 +121,9 @@ class OfferingTest {
             .then()
             .statusCode(201)
 
-        val offeringConsumer: ConsumerTask<String, OfferingEvent> =
-            companion.consume(OfferingEvent::class.java).fromTopics("offering", 1)
+        val records: ConsumerRecords<String, OfferingEvent> = offeringConsumer.poll(Duration.ofMillis(10000))
 
-        offeringConsumer.awaitCompletion()
-
-        val offeringResponse = offeringConsumer.firstRecord.value()
+        val offeringResponse = records.records("offering").iterator().asSequence().toList().map { it.value() }.first()
 
         Assertions.assertEquals(jsonBody.getValue("quantity"), offeringResponse.payload.quantity)
         Assertions.assertEquals(jsonBody.getValue("price"), offeringResponse.payload.price)
@@ -119,6 +132,8 @@ class OfferingTest {
 
     @Test
     fun testDelete() {
+        offeringConsumer.subscribe(listOf("offering"))
+
         val jsonBody: JsonObject = JsonObject()
             .put("quantity", 1)
             .put("price", 1.99F)
@@ -143,12 +158,10 @@ class OfferingTest {
             .then()
             .statusCode(202)
 
-        val productConsumer: ConsumerTask<String, OfferingEvent> =
-            companion.consume(OfferingEvent::class.java).fromTopics("offering", 2)
+        val records: ConsumerRecords<String, OfferingEvent> = offeringConsumer.poll(Duration.ofMillis(10000))
 
-        productConsumer.awaitCompletion()
+        val event = records.records("offering").iterator().iterator().asSequence().toList().map { it.value() }.first()
 
-        val event = productConsumer.records[1].value()
         Assertions.assertEquals("offering-service", event.source)
         Assertions.assertEquals("deleted", event.type)
         Assertions.assertEquals(createdId, event.payload.id)
@@ -161,6 +174,8 @@ class OfferingTest {
 
     @Test
     fun testUpdate() {
+        offeringConsumer.subscribe(listOf("offering"))
+
         val jsonBody: JsonObject = JsonObject()
             .put("quantity", 1)
             .put("price", 1.99F)
@@ -191,12 +206,10 @@ class OfferingTest {
             .then()
             .statusCode(202)
 
-        val productConsumer: ConsumerTask<String, OfferingEvent> =
-            companion.consume(OfferingEvent::class.java).fromTopics("offering", 2)
+        val records: ConsumerRecords<String, OfferingEvent> = offeringConsumer.poll(Duration.ofMillis(10000))
 
-        productConsumer.awaitCompletion()
+        val event = records.records("offering").iterator().asSequence().toList().map { it.value() }.first()
 
-        val event = productConsumer.records[1].value()
         Assertions.assertEquals("offering-service", event.source)
         Assertions.assertEquals("updated", event.type)
         Assertions.assertEquals(createdId, event.payload.id)
