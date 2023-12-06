@@ -50,7 +50,6 @@ class OfferingService {
         offeringRepository.delete(offeringToDelete)
 
         val offeringEvent = OfferingEvent(
-            source = "offering-service",
             type = "deleted",
             payload = Offering().apply { this.id = id }
         )
@@ -74,7 +73,6 @@ class OfferingService {
         offeringRepository.persist(offering)
 
         val offeringEvent = OfferingEvent(
-            source = "offering-service",
             type = "deleted",
             payload = offering
         )
@@ -95,7 +93,6 @@ class OfferingService {
         offeringRepository.persist(entity)
 
         val offeringEvent = OfferingEvent(
-            source = "offering-service",
             type = "updated",
             payload = entity
         )
