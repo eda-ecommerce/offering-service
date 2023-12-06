@@ -16,6 +16,8 @@
         url: "jdbc:sqlite:test.db"
 
 quarkus:
+  http:
+    port: 8081
   swagger-ui:
     always-include: true
   kafka:
@@ -32,6 +34,11 @@ quarkus:
     password: "secret"
     jdbc:
       url: "jdbc:sqlite:database.db"
+
+kafka:
+  auto:
+    offset:
+      reset: "earliest"
 
 mp:
   messaging:

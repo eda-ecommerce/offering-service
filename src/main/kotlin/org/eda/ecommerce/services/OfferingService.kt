@@ -33,7 +33,6 @@ class OfferingService {
         return offeringRepository.findById(id)
     }
 
-    @Transactional
     fun offeringDTOToOffering(offeringDTO: OfferingDTO): Offering {
         val existingProduct = productRepository.findById(offeringDTO.productId)
             ?: throw NotFoundException("Product with id ${offeringDTO.productId} not found")
@@ -56,7 +55,7 @@ class OfferingService {
             payload = Offering().apply { this.id = id }
         )
 
-        offeringEventEmitter.send(offeringEvent).toCompletableFuture().get()
+        offeringEventEmitter.send(offeringEvent).toCompletableFuture().join()
 
         return true
     }
@@ -80,7 +79,7 @@ class OfferingService {
             payload = offering
         )
 
-        offeringEventEmitter.send(offeringEvent).toCompletableFuture().get()
+        offeringEventEmitter.send(offeringEvent).toCompletableFuture().join()
     }
 
     fun updateOffering(offering: Offering) : Boolean {
@@ -101,7 +100,7 @@ class OfferingService {
             payload = entity
         )
 
-        offeringEventEmitter.send(offeringEvent).toCompletableFuture().get()
+        offeringEventEmitter.send(offeringEvent).toCompletableFuture().join()
 
         return true
     }

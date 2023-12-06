@@ -16,7 +16,7 @@ class ProductConsumer {
     @Incoming("product-in")
     @Transactional
     fun consume(productEvent: ProductEvent) {
-        // TODO: This does not work, because the product is not persisted
+        println("Creating Product: " + productEvent.payload)
         productService.createNewProduct(productEvent.payload)
     }
 
