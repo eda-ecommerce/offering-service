@@ -50,12 +50,11 @@ class OfferingService {
         offeringRepository.delete(offeringToDelete)
 
         val offeringEvent = OfferingEvent(
-            source = "offering-service",
             type = "deleted",
             payload = Offering().apply { this.id = id }
         )
 
-        offeringEventEmitter.send(offeringEvent).toCompletableFuture().join()
+        offeringEventEmitter.send(offeringEvent).toCompletableFuture().get()
 
         return true
     }
@@ -74,12 +73,11 @@ class OfferingService {
         offeringRepository.persist(offering)
 
         val offeringEvent = OfferingEvent(
-            source = "offering-service",
             type = "deleted",
             payload = offering
         )
 
-        offeringEventEmitter.send(offeringEvent).toCompletableFuture().join()
+        offeringEventEmitter.send(offeringEvent).toCompletableFuture().get()
     }
 
     fun updateOffering(offering: Offering) : Boolean {
@@ -95,12 +93,11 @@ class OfferingService {
         offeringRepository.persist(entity)
 
         val offeringEvent = OfferingEvent(
-            source = "offering-service",
             type = "updated",
             payload = entity
         )
 
-        offeringEventEmitter.send(offeringEvent).toCompletableFuture().join()
+        offeringEventEmitter.send(offeringEvent).toCompletableFuture().get()
 
         return true
     }
