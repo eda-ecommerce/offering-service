@@ -23,6 +23,6 @@ class OfferingDTO {
     var productId: Long? = null
 
     override fun toString(): String {
-        return "Offering(id=${PanacheEntity_.id})"
+        return "OfferingDTO(productId=$productId, quantity=$quantity, price=$price)"
     }
 }
