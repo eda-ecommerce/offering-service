@@ -1,7 +1,11 @@
 package org.eda.ecommerce.integration
 
+import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
+import io.quarkus.test.kafka.InjectKafkaCompanion
+import io.quarkus.test.kafka.KafkaCompanionResource
 import io.smallrye.common.annotation.Identifier
+import io.smallrye.reactive.messaging.kafka.companion.KafkaCompanion
 import jakarta.inject.Inject
 import jakarta.transaction.Transactional
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -9,12 +13,17 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringSerializer
 import org.awaitility.Awaitility.await
 import org.eda.ecommerce.data.repositories.ProductRepository
+import org.eda.ecommerce.helpers.KafkaTestHelper
 import org.junit.jupiter.api.*
 import java.util.concurrent.TimeUnit
 
 
 @QuarkusTest
+@QuarkusTestResource(KafkaCompanionResource::class)
 class ProductTest {
+
+    @InjectKafkaCompanion
+    lateinit var companion: KafkaCompanion
 
     @Inject
     @Identifier("default-kafka-broker")
@@ -25,6 +34,7 @@ class ProductTest {
     @Inject
     lateinit var productRepository: ProductRepository
 
+
     @BeforeEach
     @Transactional
     fun deleteAllProducts() {
@@ -33,6 +43,8 @@ class ProductTest {
 
     @BeforeEach
     fun setupKafkaHelpers() {
+       KafkaTestHelper.clearTopicIfNotEmpty(companion,"product")
+
         productProducer = KafkaProducer(kafkaConfig, StringSerializer(), StringSerializer())
     }
 

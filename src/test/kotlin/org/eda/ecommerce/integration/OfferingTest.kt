@@ -20,6 +20,7 @@ import org.eda.ecommerce.data.models.Product
 import org.eda.ecommerce.data.models.events.OfferingEvent
 import org.eda.ecommerce.data.repositories.OfferingRepository
 import org.eda.ecommerce.data.repositories.ProductRepository
+import org.eda.ecommerce.helpers.KafkaTestHelper
 import org.junit.jupiter.api.*
 import java.time.Duration
 import java.util.*
@@ -62,8 +63,8 @@ class OfferingTest {
     @BeforeEach
     @Transactional
     fun cleanRepositoryAndKafkaTopics() {
-        companion.topics().delete("offering")
-        companion.topics().create("offering", 1)
+        KafkaTestHelper.clearTopicIfNotEmpty(companion, "offering")
+
         offeringRepository.deleteAll()
     }
 
