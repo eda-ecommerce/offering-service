@@ -55,7 +55,7 @@ class OfferingController {
         val updated = offeringService.updateOffering(offering)
 
         return if (updated)
-            Response.status(Response.Status.ACCEPTED).build()
+            Response.status(Response.Status.NO_CONTENT).build()
         else
             Response.status(Response.Status.NOT_FOUND).build()
     }
@@ -74,7 +74,7 @@ class OfferingController {
         val deleted = offeringService.deleteById(id)
 
         return if (deleted)
-            Response.status(Response.Status.ACCEPTED).build()
+            Response.status(Response.Status.NO_CONTENT).build()
         else
             Response.status(Response.Status.NOT_FOUND).build()
     }

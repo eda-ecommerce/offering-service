@@ -156,7 +156,7 @@ class OfferingTest {
             .queryParam("id", createdId)
             .delete("/offering")
             .then()
-            .statusCode(202)
+            .statusCode(204)
 
         val records: ConsumerRecords<String, OfferingEvent> = offeringConsumer.poll(Duration.ofMillis(10000))
 
@@ -204,7 +204,7 @@ class OfferingTest {
             .`when`()
             .put("/offering")
             .then()
-            .statusCode(202)
+            .statusCode(204)
 
         val records: ConsumerRecords<String, OfferingEvent> = offeringConsumer.poll(Duration.ofMillis(10000))
 
