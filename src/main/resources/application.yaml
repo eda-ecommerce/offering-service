@@ -27,6 +27,7 @@ quarkus:
     always-include: true
   kafka:
     devservices:
+      image-name: "redpandadata/redpanda:v23.2.18"
       port: 32800
       topic-partitions:
         product: 1
