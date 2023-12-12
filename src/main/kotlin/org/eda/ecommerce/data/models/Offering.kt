@@ -17,11 +17,7 @@ class Offering : PanacheEntity() {
     }
 }
 
-class OfferingDTO {
-    var quantity: Int? = null
-    var price: Float? = null
-    var productId: Long? = null
-
+class OfferingDTO(var productId: Long? = null, var quantity: Int? = null, var price: Float? = null) {
     override fun toString(): String {
         return "OfferingDTO(productId=$productId, quantity=$quantity, price=$price)"
     }
