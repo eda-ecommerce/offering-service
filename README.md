@@ -1,3 +1,5 @@
+[![CI Workflow](https://github.com/eda-ecommerce/offering-service/actions/workflows/main.yml/badge.svg)](https://github.com/eda-ecommerce/offering-service/actions/workflows/main.yml)
+
 # offering-service
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
