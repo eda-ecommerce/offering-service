@@ -201,8 +201,7 @@ class OfferingTest {
         given()
             .contentType("application/json")
             .`when`()
-            .queryParam("id", createdId)
-            .delete("/offering")
+            .delete("/offering/$createdId")
             .then()
             .statusCode(204)
 

@@ -29,7 +29,7 @@ class OfferingService {
         return offeringRepository.listAll()
     }
 
-    fun findById(id: Long): Offering {
+    fun findById(id: Long): Offering? {
         return offeringRepository.findById(id)
     }
 

@@ -31,7 +31,7 @@ class OfferingController {
     @Consumes(MediaType.TEXT_PLAIN)
     @Operation(summary = "Returns a Offering by its ID.")
     fun getById(
-        @QueryParam("id")
+        @PathParam("id")
         @Parameter(
             name = "id",
             description = "The ID of the Offering to be returned.",
@@ -61,12 +61,13 @@ class OfferingController {
     }
 
     @DELETE
+    @Path("/{id}")
     @Transactional
     fun deleteOfferingById(
-        @QueryParam("id")
+        @PathParam("id")
         @Parameter(
             name = "id",
-            description = "The ID of the Offering to be deleted.",
+            description = "The ID of the Offering to be returned.",
             schema = Schema(type = SchemaType.NUMBER, format = "long")
         )
         id: Long
