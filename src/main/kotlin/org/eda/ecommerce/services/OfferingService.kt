@@ -54,7 +54,7 @@ class OfferingService {
             payload = Offering().apply { this.id = id }
         )
 
-        offeringEventEmitter.send(offeringEvent).toCompletableFuture().join()
+        offeringEventEmitter.send(offeringEvent).toCompletableFuture().get()
 
         return true
     }
@@ -77,7 +77,7 @@ class OfferingService {
             payload = offering
         )
 
-        offeringEventEmitter.send(offeringEvent).toCompletableFuture().join()
+        offeringEventEmitter.send(offeringEvent).toCompletableFuture().get()
     }
 
     fun updateOffering(offering: Offering) : Boolean {
@@ -97,7 +97,7 @@ class OfferingService {
             payload = entity
         )
 
-        offeringEventEmitter.send(offeringEvent).toCompletableFuture().join()
+        offeringEventEmitter.send(offeringEvent).toCompletableFuture().get()
 
         return true
     }
