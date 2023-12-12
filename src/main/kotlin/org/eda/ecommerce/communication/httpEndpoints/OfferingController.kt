@@ -38,8 +38,13 @@ class OfferingController {
             schema = Schema(type = SchemaType.NUMBER, format = "long")
         )
         id: Long
-    ): Offering {
-        return offeringService.findById(id)
+    ): Response {
+        val offering = offeringService.findById(id)
+
+        return if (offering != null)
+            Response.ok(offering).build()
+        else
+            Response.status(Response.Status.NOT_FOUND).build()
     }
 
     @POST
