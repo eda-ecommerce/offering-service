@@ -14,10 +14,15 @@
       password: "secret"
       jdbc:
         url: "jdbc:sqlite:test.db"
+    kafka:
+      devservices:
+        port: 32801
+
 
 quarkus:
   http:
     port: 8081
+    test-port: 0
   swagger-ui:
     always-include: true
   kafka:
