@@ -56,7 +56,7 @@ class ProductTest {
     @Test
     fun testCreationOnProductCreatedEvent() {
         productProducer
-            .send(ProducerRecord("product", "{\"source\": \"product-service\", \"timestamp\": 1699910206866, \"type\": \"created\", \"payload\": { \"id\": 1, \"color\": \"string\", \"description\": \"string\" }}"))
+            .send(ProducerRecord("product", "{\"source\": \"product-service\", \"timestamp\": 1699910206866, \"type\": \"created\", \"content\": { \"id\": 1, \"color\": \"string\", \"description\": \"string\" }}"))
             .get()
 
         await().atMost(10, TimeUnit.SECONDS).untilAsserted {

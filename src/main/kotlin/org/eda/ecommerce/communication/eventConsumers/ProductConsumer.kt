@@ -16,8 +16,8 @@ class ProductConsumer {
     @Incoming("product-in")
     @Transactional
     fun consume(productEvent: ProductEvent) {
-        println("Creating Product: " + productEvent.payload)
-        productService.createNewProduct(productEvent.payload)
+        println("Creating Product: " + productEvent.content)
+        productService.createNewProduct(productEvent.content)
     }
 
 }

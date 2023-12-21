@@ -148,9 +148,9 @@ class OfferingTest {
 
         val offeringResponse = records.records("offering").iterator().asSequence().toList().map { it.value() }.first()
 
-        Assertions.assertEquals(jsonBody.getValue("quantity"), offeringResponse.payload.quantity)
-        Assertions.assertEquals(jsonBody.getValue("price"), offeringResponse.payload.price)
-        Assertions.assertEquals(jsonBody.getValue("productId"), offeringResponse.payload.product?.id)
+        Assertions.assertEquals(jsonBody.getValue("quantity"), offeringResponse.content.quantity)
+        Assertions.assertEquals(jsonBody.getValue("price"), offeringResponse.content.price)
+        Assertions.assertEquals(jsonBody.getValue("productId"), offeringResponse.content.product?.id)
     }
 
     @Test
@@ -182,10 +182,10 @@ class OfferingTest {
 
         Assertions.assertEquals("offering-service", event.source)
         Assertions.assertEquals("updated", event.type)
-        Assertions.assertEquals(createdId, event.payload.id)
-        Assertions.assertEquals(jsonBodyUpdated.getValue("quantity"), event.payload.quantity)
-        Assertions.assertEquals(jsonBodyUpdated.getValue("price"), event.payload.price)
-        Assertions.assertEquals(jsonBodyUpdated.getValue("product"), event.payload.product)
+        Assertions.assertEquals(createdId, event.content.id)
+        Assertions.assertEquals(jsonBodyUpdated.getValue("quantity"), event.content.quantity)
+        Assertions.assertEquals(jsonBodyUpdated.getValue("price"), event.content.price)
+        Assertions.assertEquals(jsonBodyUpdated.getValue("product"), event.content.product)
 
         Assertions.assertEquals(1, offeringRepository.count())
     }
@@ -212,10 +212,10 @@ class OfferingTest {
 
         Assertions.assertEquals("offering-service", event.source)
         Assertions.assertEquals("deleted", event.type)
-        Assertions.assertEquals(createdId, event.payload.id)
-        Assertions.assertEquals(null, event.payload.quantity)
-        Assertions.assertEquals(null, event.payload.price)
-        Assertions.assertEquals(null, event.payload.product)
+        Assertions.assertEquals(createdId, event.content.id)
+        Assertions.assertEquals(null, event.content.quantity)
+        Assertions.assertEquals(null, event.content.price)
+        Assertions.assertEquals(null, event.content.product)
 
         Assertions.assertEquals(0, offeringRepository.count())
     }

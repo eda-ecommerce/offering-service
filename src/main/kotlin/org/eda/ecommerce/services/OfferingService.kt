@@ -51,7 +51,7 @@ class OfferingService {
 
         val offeringEvent = OfferingEvent(
             type = "deleted",
-            payload = Offering().apply { this.id = id }
+            content = Offering().apply { this.id = id }
         )
 
         offeringEventEmitter.send(offeringEvent).toCompletableFuture().get()
@@ -74,7 +74,7 @@ class OfferingService {
 
         val offeringEvent = OfferingEvent(
             type = "deleted",
-            payload = offering
+            content = offering
         )
 
         offeringEventEmitter.send(offeringEvent).toCompletableFuture().get()
@@ -94,7 +94,7 @@ class OfferingService {
 
         val offeringEvent = OfferingEvent(
             type = "updated",
-            payload = entity
+            content = entity
         )
 
         offeringEventEmitter.send(offeringEvent).toCompletableFuture().get()
