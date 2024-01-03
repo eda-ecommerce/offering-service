@@ -7,7 +7,8 @@ import jakarta.ws.rs.NotFoundException
 import org.eclipse.microprofile.reactive.messaging.Channel
 import org.eclipse.microprofile.reactive.messaging.Emitter
 import org.eda.ecommerce.data.models.Offering
-import org.eda.ecommerce.data.models.OfferingDTO
+import org.eda.ecommerce.data.models.CreateOfferingDTO
+import org.eda.ecommerce.data.models.UpdateOfferingDTO
 import org.eda.ecommerce.data.models.events.OfferingEvent
 import org.eda.ecommerce.data.repositories.OfferingRepository
 import org.eda.ecommerce.data.repositories.ProductRepository
@@ -34,13 +35,14 @@ class OfferingService {
         return offeringRepository.findById(id)
     }
 
-    fun offeringDTOToOffering(offeringDTO: OfferingDTO): Offering {
-        val existingProduct = productRepository.findById(offeringDTO.productId)
-            ?: throw NotFoundException("Product with id ${offeringDTO.productId} not found")
+    fun offeringDTOToOffering(createOfferingDTO: CreateOfferingDTO): Offering {
+        val existingProduct = productRepository.findById(createOfferingDTO.productId)
+            ?: throw NotFoundException("Product with id ${createOfferingDTO.productId} not found")
 
         val offering = Offering()
-        offering.quantity = offeringDTO.quantity
-        offering.price = offeringDTO.price
+        offering.status = createOfferingDTO.status
+        offering.quantity = createOfferingDTO.quantity
+        offering.price = createOfferingDTO.price
         offering.product = existingProduct
         return offering
     }
@@ -52,7 +54,7 @@ class OfferingService {
 
         val offeringEvent = OfferingEvent(
             type = "deleted",
-            content = Offering().apply { this.id = id }
+            content = offeringToDelete
         )
 
         offeringEventEmitter.send(offeringEvent).toCompletableFuture().get()
@@ -62,8 +64,8 @@ class OfferingService {
 
     // It is unfortunately necessary to split the transformation of th DTO to the real Offering and persisting / emitting
     // for some weird transaction related issue that locks the database on findById and does not release the lock to save.
-    fun createNewEntity(offeringDTO: OfferingDTO) : Offering{
-        val offering = offeringDTOToOffering(offeringDTO)
+    fun createNewEntity(createOfferingDTO: CreateOfferingDTO) : Offering{
+        val offering = offeringDTOToOffering(createOfferingDTO)
 
         persistWithTransactionAndEmit(offering)
         return offering
@@ -81,14 +83,18 @@ class OfferingService {
         offeringEventEmitter.send(offeringEvent).toCompletableFuture().get()
     }
 
-    fun updateOffering(offering: Offering) : Boolean {
-        val entity = offeringRepository.findById(offering.id) ?: return false
+    fun updateOffering(offeringDTO: UpdateOfferingDTO) : Boolean {
+        val entity = offeringRepository.findById(offeringDTO.id) ?: return false
+
+        val product = productRepository.findById(offeringDTO.productId)
+            ?: throw NotFoundException("Product with id ${offeringDTO.productId} not found")
 
         entity.apply {
-            this.quantity = offering.quantity
-            this.price = offering.price
-            this.quantity = offering.quantity
-            this.product = offering.product
+            this.quantity = offeringDTO.quantity
+            this.price = offeringDTO.price
+            this.quantity = offeringDTO.quantity
+            this.status = offeringDTO.status
+            this.product = product
         }
 
         offeringRepository.persist(entity)

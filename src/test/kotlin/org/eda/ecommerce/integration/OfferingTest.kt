@@ -16,6 +16,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.eda.ecommerce.JsonSerdeFactory
 import org.eda.ecommerce.data.models.Offering
+import org.eda.ecommerce.data.models.OfferingStatus
 import org.eda.ecommerce.data.models.Product
 import org.eda.ecommerce.data.models.events.OfferingEvent
 import org.eda.ecommerce.data.repositories.OfferingRepository
@@ -108,6 +109,32 @@ class OfferingTest {
 
         val createdId = offeringRepository.listAll()[0].id
 
+        Assertions.assertEquals(OfferingStatus.ACTIVE, offeringRepository.findById(createdId).status)
+        Assertions.assertEquals(jsonBody.getValue("quantity"), offeringRepository.findById(createdId).quantity)
+        Assertions.assertEquals(jsonBody.getValue("price"), offeringRepository.findById(createdId).price)
+        Assertions.assertEquals(jsonBody.getValue("productId"), offeringRepository.findById(createdId).product?.id)
+    }
+
+    @Test
+    fun testCreationAndPersistenceWithInactiveStatusWhenCreatingWithPost() {
+        val jsonBody: JsonObject = JsonObject()
+            .put("status", "inactive")
+            .put("quantity", 1)
+            .put("price", 1.99F)
+            .put("productId", productId)
+
+        given()
+            .contentType("application/json")
+            .body(jsonBody.toString())
+            .`when`().post("/offering")
+            .then()
+            .statusCode(201)
+
+        Assertions.assertEquals(1, offeringRepository.count())
+
+        val createdId = offeringRepository.listAll()[0].id
+
+        Assertions.assertEquals(OfferingStatus.INACTIVE, offeringRepository.findById(createdId).status)
         Assertions.assertEquals(jsonBody.getValue("quantity"), offeringRepository.findById(createdId).quantity)
         Assertions.assertEquals(jsonBody.getValue("price"), offeringRepository.findById(createdId).price)
         Assertions.assertEquals(jsonBody.getValue("productId"), offeringRepository.findById(createdId).product?.id)
@@ -150,6 +177,7 @@ class OfferingTest {
 
         val offeringResponse = records.records("offering").iterator().asSequence().toList().map { it.value() }.first()
 
+        Assertions.assertEquals(OfferingStatus.ACTIVE, offeringResponse.content.status)
         Assertions.assertEquals(jsonBody.getValue("quantity"), offeringResponse.content.quantity)
         Assertions.assertEquals(jsonBody.getValue("price"), offeringResponse.content.price)
         Assertions.assertEquals(jsonBody.getValue("productId"), offeringResponse.content.product?.id)
@@ -166,6 +194,7 @@ class OfferingTest {
 
         val jsonBodyUpdated: JsonObject = JsonObject()
             .put("id", createdId)
+            .put("status", "retired")
             .put("quantity", 2)
             .put("price", 2.99F)
             .put("productId", productId)
@@ -185,9 +214,10 @@ class OfferingTest {
         Assertions.assertEquals("offering-service", event.source)
         Assertions.assertEquals("updated", event.type)
         Assertions.assertEquals(createdId, event.content.id)
+        Assertions.assertEquals(OfferingStatus.RETIRED, event.content.status)
         Assertions.assertEquals(jsonBodyUpdated.getValue("quantity"), event.content.quantity)
         Assertions.assertEquals(jsonBodyUpdated.getValue("price"), event.content.price)
-        Assertions.assertEquals(jsonBodyUpdated.getValue("product"), event.content.product)
+        Assertions.assertEquals(productId, event.content.product?.id)
 
         Assertions.assertEquals(1, offeringRepository.count())
     }
@@ -215,9 +245,6 @@ class OfferingTest {
         Assertions.assertEquals("offering-service", event.source)
         Assertions.assertEquals("deleted", event.type)
         Assertions.assertEquals(createdId, event.content.id)
-        Assertions.assertEquals(null, event.content.quantity)
-        Assertions.assertEquals(null, event.content.price)
-        Assertions.assertEquals(null, event.content.product)
 
         Assertions.assertEquals(0, offeringRepository.count())
     }

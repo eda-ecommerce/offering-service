@@ -1,5 +1,6 @@
 package org.eda.ecommerce.data.models
 
+import com.fasterxml.jackson.annotation.JsonValue
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase
 import jakarta.persistence.*
 import org.hibernate.annotations.GenericGenerator
@@ -14,6 +15,8 @@ class Offering : PanacheEntityBase() {
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
     var id: UUID? = null
 
+    var status: OfferingStatus = OfferingStatus.ACTIVE
+
     var quantity: Int? = null
     var price: Float? = null
 
@@ -21,12 +24,30 @@ class Offering : PanacheEntityBase() {
     var product: Product? = null
 
     override fun toString(): String {
-        return "Offering(id=$id, quantity=$quantity, price=$price, product=$product)"
+        return "Offering(id=$id, status=$status, squantity=$quantity, price=$price, product=$product)"
     }
 }
 
-class OfferingDTO(var productId: UUID? = null, var quantity: Int? = null, var price: Float? = null) {
+class CreateOfferingDTO(var status: OfferingStatus = OfferingStatus.ACTIVE, var productId: UUID? = null, var quantity: Int? = null, var price: Float? = null) {
     override fun toString(): String {
-        return "OfferingDTO(productId=$productId, quantity=$quantity, price=$price)"
+        return "Offering(status=$status, productId=$productId, quantity=$quantity, price=$price)"
     }
+}
+
+class UpdateOfferingDTO(
+    var id: UUID,
+    var status: OfferingStatus = OfferingStatus.ACTIVE,
+    var productId: UUID? = null,
+    var quantity: Int? = null,
+    var price: Float? = null
+) {
+    override fun toString(): String {
+        return "OfferingDTO(id=$id, status=$status, productId=$productId, quantity=$quantity, price=$price)"
+    }
+}
+
+enum class OfferingStatus(@JsonValue val value: String) {
+    ACTIVE("active"),
+    INACTIVE("inactive"),
+    RETIRED("retired");
 }

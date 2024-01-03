@@ -10,7 +10,8 @@ import org.eclipse.microprofile.openapi.annotations.enums.SchemaType
 import org.eclipse.microprofile.openapi.annotations.media.Schema
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter
 import org.eda.ecommerce.data.models.Offering
-import org.eda.ecommerce.data.models.OfferingDTO
+import org.eda.ecommerce.data.models.CreateOfferingDTO
+import org.eda.ecommerce.data.models.UpdateOfferingDTO
 import org.eda.ecommerce.services.OfferingService
 import java.net.URI
 import java.util.UUID
@@ -49,16 +50,16 @@ class OfferingController {
     }
 
     @POST
-    fun createNew(offeringDTO: OfferingDTO): Response {
-        val newOffering = offeringService.createNewEntity(offeringDTO)
+    fun createNew(createOfferingDTO: CreateOfferingDTO): Response {
+        val newOffering = offeringService.createNewEntity(createOfferingDTO)
 
         return Response.created(URI.create("/offering/" + newOffering.id)).build()
     }
 
     @PUT
     @Transactional
-    fun updateOffering(offering: Offering): Response {
-        val updated = offeringService.updateOffering(offering)
+    fun updateOffering(updateOfferingDTO: UpdateOfferingDTO): Response {
+        val updated = offeringService.updateOffering(updateOfferingDTO)
 
         return if (updated)
             Response.status(Response.Status.NO_CONTENT).build()
