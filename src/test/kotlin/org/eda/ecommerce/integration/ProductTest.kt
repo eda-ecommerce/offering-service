@@ -15,6 +15,7 @@ import org.awaitility.Awaitility.await
 import org.eda.ecommerce.data.repositories.ProductRepository
 import org.eda.ecommerce.helpers.KafkaTestHelper
 import org.junit.jupiter.api.*
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 
@@ -55,8 +56,10 @@ class ProductTest {
 
     @Test
     fun testCreationOnProductCreatedEvent() {
+        val productUUID = UUID.randomUUID()
+
         productProducer
-            .send(ProducerRecord("product", "{\"source\": \"product-service\", \"timestamp\": 1699910206866, \"type\": \"created\", \"content\": { \"id\": 1, \"color\": \"string\", \"description\": \"string\" }}"))
+            .send(ProducerRecord("product", "{\"source\": \"product-service\", \"timestamp\": 1699910206866, \"type\": \"created\", \"content\": { \"id\": \"${productUUID}\", \"color\": \"string\", \"description\": \"string\" }}"))
             .get()
 
         await().atMost(10, TimeUnit.SECONDS).untilAsserted {
@@ -64,7 +67,7 @@ class ProductTest {
         }
         val product = productRepository.listAll().first()
 
-        Assertions.assertEquals(1, product.id)
+        Assertions.assertEquals(productUUID, product.id)
     }
 
 }

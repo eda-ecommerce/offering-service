@@ -13,6 +13,7 @@ import org.eda.ecommerce.data.models.Offering
 import org.eda.ecommerce.data.models.OfferingDTO
 import org.eda.ecommerce.services.OfferingService
 import java.net.URI
+import java.util.UUID
 
 @Path("/offering")
 class OfferingController {
@@ -35,9 +36,9 @@ class OfferingController {
         @Parameter(
             name = "id",
             description = "The ID of the Offering to be returned.",
-            schema = Schema(type = SchemaType.NUMBER, format = "long")
+            schema = Schema(type = SchemaType.STRING, format = "UUID")
         )
-        id: Long
+        id: UUID
     ): Response {
         val offering = offeringService.findById(id)
 
@@ -73,9 +74,9 @@ class OfferingController {
         @Parameter(
             name = "id",
             description = "The ID of the Offering to be returned.",
-            schema = Schema(type = SchemaType.NUMBER, format = "long")
+            schema = Schema(type = SchemaType.STRING, format = "UUID")
         )
-        id: Long
+        id: UUID
     ): Response {
         val deleted = offeringService.deleteById(id)
 

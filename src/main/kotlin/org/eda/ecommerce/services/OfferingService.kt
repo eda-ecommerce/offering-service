@@ -11,6 +11,7 @@ import org.eda.ecommerce.data.models.OfferingDTO
 import org.eda.ecommerce.data.models.events.OfferingEvent
 import org.eda.ecommerce.data.repositories.OfferingRepository
 import org.eda.ecommerce.data.repositories.ProductRepository
+import java.util.UUID
 
 @ApplicationScoped
 class OfferingService {
@@ -29,7 +30,7 @@ class OfferingService {
         return offeringRepository.listAll()
     }
 
-    fun findById(id: Long): Offering? {
+    fun findById(id: UUID): Offering? {
         return offeringRepository.findById(id)
     }
 
@@ -44,7 +45,7 @@ class OfferingService {
         return offering
     }
 
-    fun deleteById(id: Long): Boolean {
+    fun deleteById(id: UUID): Boolean {
         val offeringToDelete = offeringRepository.findById(id) ?: return false
 
         offeringRepository.delete(offeringToDelete)

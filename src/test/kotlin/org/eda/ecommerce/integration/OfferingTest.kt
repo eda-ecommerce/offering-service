@@ -46,10 +46,12 @@ class OfferingTest {
     @Inject
     lateinit var productRepository: ProductRepository
 
+    var productId = UUID.randomUUID()
+
     @BeforeAll
     @Transactional
     fun setup() {
-        val product = Product().apply { id = 1 }
+        val product = Product().apply { id = productId }
         productRepository.persist(product)
 
         val offeringEventJsonSerdeFactory = JsonSerdeFactory<OfferingEvent>()
@@ -84,7 +86,7 @@ class OfferingTest {
 
     @Transactional
     fun createOffering () {
-        val offering = Offering().apply { product = Product().apply { id = 1 }; quantity = 1; price = 1.99F }
+        val offering = Offering().apply { product = Product().apply { id = productId }; quantity = 1; price = 1.99F }
         this.offeringRepository.persist(offering)
     }
 
@@ -93,7 +95,7 @@ class OfferingTest {
         val jsonBody: JsonObject = JsonObject()
             .put("quantity", 1)
             .put("price", 1.99F)
-            .put("productId", 1L)
+            .put("productId", productId)
 
         given()
             .contentType("application/json")
@@ -116,7 +118,7 @@ class OfferingTest {
         val jsonBody: JsonObject = JsonObject()
             .put("quantity", 1)
             .put("price", 1.99F)
-            .put("productId", 2L)
+            .put("productId", UUID.randomUUID())
 
         given()
             .contentType("application/json")
@@ -135,7 +137,7 @@ class OfferingTest {
         val jsonBody: JsonObject = JsonObject()
             .put("quantity", 1)
             .put("price", 1.99F)
-            .put("productId", 1L)
+            .put("productId", productId)
 
         given()
             .contentType("application/json")
@@ -166,7 +168,7 @@ class OfferingTest {
             .put("id", createdId)
             .put("quantity", 2)
             .put("price", 2.99F)
-            .put("productId", 1L)
+            .put("productId", productId)
 
         given()
             .contentType("application/json")

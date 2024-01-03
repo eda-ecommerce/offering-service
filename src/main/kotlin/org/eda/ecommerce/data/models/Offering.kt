@@ -1,11 +1,19 @@
 package org.eda.ecommerce.data.models
 
-import io.quarkus.hibernate.orm.panache.PanacheEntity
-import io.quarkus.hibernate.orm.panache.PanacheEntity_
+import io.quarkus.hibernate.orm.panache.PanacheEntityBase
 import jakarta.persistence.*
+import org.hibernate.annotations.GenericGenerator
+import java.util.*
 
 @Entity
-class Offering : PanacheEntity() {
+class Offering : PanacheEntityBase() {
+
+    @Id
+    @Column(name = "id")
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    var id: UUID? = null
+
     var quantity: Int? = null
     var price: Float? = null
 
@@ -17,7 +25,7 @@ class Offering : PanacheEntity() {
     }
 }
 
-class OfferingDTO(var productId: Long? = null, var quantity: Int? = null, var price: Float? = null) {
+class OfferingDTO(var productId: UUID? = null, var quantity: Int? = null, var price: Float? = null) {
     override fun toString(): String {
         return "OfferingDTO(productId=$productId, quantity=$quantity, price=$price)"
     }
