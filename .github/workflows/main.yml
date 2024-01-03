@@ -21,7 +21,7 @@ jobs:
           cache: maven
 
       - name: Test with Maven
-        run: mvn -B test --file pom.xml
+        run: mvn -B -ntp test --file pom.xml
 
       - name: Semantic Release
         if: ${{ github.event_name == 'push' }}
@@ -37,7 +37,7 @@ jobs:
 
       - name: Build with Maven
         if: ${{ (github.event_name == 'push') && (steps.semantic-release.outputs.new_release_published == 'true') }}
-        run: mvn -B package --file pom.xml
+        run: mvn -B -ntp package --file pom.xml
 
       - name: Set up Docker Buildx
         if: ${{ (github.event_name == 'push') && (steps.semantic-release.outputs.new_release_published == 'true') }}
