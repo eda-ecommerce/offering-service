@@ -1,5 +1,6 @@
 package org.eda.ecommerce.services
 
+import io.smallrye.reactive.messaging.MutinyEmitter
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 import jakarta.transaction.Transactional
@@ -9,7 +10,9 @@ import org.eclipse.microprofile.reactive.messaging.Emitter
 import org.eda.ecommerce.data.models.Offering
 import org.eda.ecommerce.data.models.CreateOfferingDTO
 import org.eda.ecommerce.data.models.UpdateOfferingDTO
-import org.eda.ecommerce.data.models.events.OfferingEvent
+import org.eda.ecommerce.data.models.events.OfferingCreatedEvent
+import org.eda.ecommerce.data.models.events.OfferingDeletedEvent
+import org.eda.ecommerce.data.models.events.OfferingUpdatedEvent
 import org.eda.ecommerce.data.repositories.OfferingRepository
 import org.eda.ecommerce.data.repositories.ProductRepository
 import java.util.UUID
@@ -25,7 +28,7 @@ class OfferingService {
 
     @Inject
     @Channel("offering-out")
-    private lateinit var offeringEventEmitter: Emitter<OfferingEvent>
+    private lateinit var offeringEventEmitter: MutinyEmitter<Offering>
 
     fun getAll(): List<Offering> {
         return offeringRepository.listAll()
@@ -52,12 +55,7 @@ class OfferingService {
 
         offeringRepository.delete(offeringToDelete)
 
-        val offeringEvent = OfferingEvent(
-            type = "deleted",
-            content = offeringToDelete
-        )
-
-        offeringEventEmitter.send(offeringEvent).toCompletableFuture().get()
+        offeringEventEmitter.sendMessageAndAwait(OfferingDeletedEvent(offeringToDelete))
 
         return true
     }
@@ -75,12 +73,7 @@ class OfferingService {
     fun persistWithTransactionAndEmit (offering: Offering) {
         offeringRepository.persist(offering)
 
-        val offeringEvent = OfferingEvent(
-            type = "deleted",
-            content = offering
-        )
-
-        offeringEventEmitter.send(offeringEvent).toCompletableFuture().get()
+        offeringEventEmitter.sendMessageAndAwait(OfferingCreatedEvent(offering))
     }
 
     fun updateOffering(offeringDTO: UpdateOfferingDTO) : Boolean {
@@ -99,12 +92,7 @@ class OfferingService {
 
         offeringRepository.persist(entity)
 
-        val offeringEvent = OfferingEvent(
-            type = "updated",
-            content = entity
-        )
-
-        offeringEventEmitter.send(offeringEvent).toCompletableFuture().get()
+        offeringEventEmitter.sendMessageAndAwait(OfferingUpdatedEvent(entity))
 
         return true
     }

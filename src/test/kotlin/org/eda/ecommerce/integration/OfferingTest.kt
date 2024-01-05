@@ -18,7 +18,6 @@ import org.eda.ecommerce.JsonSerdeFactory
 import org.eda.ecommerce.data.models.Offering
 import org.eda.ecommerce.data.models.OfferingStatus
 import org.eda.ecommerce.data.models.Product
-import org.eda.ecommerce.data.models.events.OfferingEvent
 import org.eda.ecommerce.data.repositories.OfferingRepository
 import org.eda.ecommerce.data.repositories.ProductRepository
 import org.eda.ecommerce.helpers.KafkaTestHelper
@@ -39,7 +38,7 @@ class OfferingTest {
     @Identifier("default-kafka-broker")
     lateinit var kafkaConfig: Map<String, Any>
 
-    lateinit var consumer: KafkaConsumer<String, OfferingEvent>
+    lateinit var consumer: KafkaConsumer<String, Offering>
 
     @Inject
     lateinit var offeringRepository: OfferingRepository
@@ -55,11 +54,11 @@ class OfferingTest {
         val product = Product().apply { id = productId }
         productRepository.persist(product)
 
-        val offeringEventJsonSerdeFactory = JsonSerdeFactory<OfferingEvent>()
+        val offeringEventJsonSerdeFactory = JsonSerdeFactory<Offering>()
         consumer = KafkaConsumer(
             consumerConfig(),
             StringDeserializer(),
-            offeringEventJsonSerdeFactory.createDeserializer(OfferingEvent::class.java)
+            offeringEventJsonSerdeFactory.createDeserializer(Offering::class.java)
         )
     }
 
@@ -173,14 +172,18 @@ class OfferingTest {
             .then()
             .statusCode(201)
 
-        val records: ConsumerRecords<String, OfferingEvent> = consumer.poll(Duration.ofMillis(10000))
+        val records: ConsumerRecords<String, Offering> = consumer.poll(Duration.ofMillis(10000))
 
-        val offeringResponse = records.records("offering").iterator().asSequence().toList().map { it.value() }.first()
+        val event = records.records("offering").iterator().asSequence().toList().first()
+        val eventPayload = event.value()
+        val eventHeaders = event.headers().toList().associateBy({ it.key() }, { it.value().toString(Charsets.UTF_8) })
 
-        Assertions.assertEquals(OfferingStatus.ACTIVE, offeringResponse.content.status)
-        Assertions.assertEquals(jsonBody.getValue("quantity"), offeringResponse.content.quantity)
-        Assertions.assertEquals(jsonBody.getValue("price"), offeringResponse.content.price)
-        Assertions.assertEquals(jsonBody.getValue("productId"), offeringResponse.content.product?.id)
+        Assertions.assertEquals("offering", eventHeaders["source"])
+        Assertions.assertEquals("created", eventHeaders["operation"])
+        Assertions.assertEquals(OfferingStatus.ACTIVE, eventPayload.status)
+        Assertions.assertEquals(jsonBody.getValue("quantity"), eventPayload.quantity)
+        Assertions.assertEquals(jsonBody.getValue("price"), eventPayload.price)
+        Assertions.assertEquals(jsonBody.getValue("productId"), eventPayload.product?.id)
     }
 
     @Test
@@ -207,17 +210,19 @@ class OfferingTest {
             .then()
             .statusCode(204)
 
-        val records: ConsumerRecords<String, OfferingEvent> = consumer.poll(Duration.ofMillis(10000))
+        val records: ConsumerRecords<String, Offering> = consumer.poll(Duration.ofMillis(10000))
 
-        val event = records.records("offering").iterator().asSequence().toList().map { it.value() }.first()
+        val event = records.records("offering").iterator().asSequence().toList().first()
+        val eventPayload = event.value()
+        val eventHeaders = event.headers().toList().associateBy({ it.key() }, { it.value().toString(Charsets.UTF_8) })
 
-        Assertions.assertEquals("offering-service", event.source)
-        Assertions.assertEquals("updated", event.type)
-        Assertions.assertEquals(createdId, event.content.id)
-        Assertions.assertEquals(OfferingStatus.RETIRED, event.content.status)
-        Assertions.assertEquals(jsonBodyUpdated.getValue("quantity"), event.content.quantity)
-        Assertions.assertEquals(jsonBodyUpdated.getValue("price"), event.content.price)
-        Assertions.assertEquals(productId, event.content.product?.id)
+        Assertions.assertEquals("offering", eventHeaders["source"])
+        Assertions.assertEquals("updated", eventHeaders["operation"])
+        Assertions.assertEquals(createdId, eventPayload.id)
+        Assertions.assertEquals(OfferingStatus.RETIRED, eventPayload.status)
+        Assertions.assertEquals(jsonBodyUpdated.getValue("quantity"), eventPayload.quantity)
+        Assertions.assertEquals(jsonBodyUpdated.getValue("price"), eventPayload.price)
+        Assertions.assertEquals(productId, eventPayload.product?.id)
 
         Assertions.assertEquals(1, offeringRepository.count())
     }
@@ -238,13 +243,15 @@ class OfferingTest {
             .then()
             .statusCode(204)
 
-        val records: ConsumerRecords<String, OfferingEvent> = consumer.poll(Duration.ofMillis(10000))
+        val records: ConsumerRecords<String, Offering> = consumer.poll(Duration.ofMillis(10000))
 
-        val event = records.records("offering").iterator().asSequence().toList().map { it.value() }.first()
+        val event = records.records("offering").iterator().asSequence().toList().first()
+        val eventPayload = event.value()
+        val eventHeaders = event.headers().toList().associateBy({ it.key() }, { it.value().toString(Charsets.UTF_8) })
 
-        Assertions.assertEquals("offering-service", event.source)
-        Assertions.assertEquals("deleted", event.type)
-        Assertions.assertEquals(createdId, event.content.id)
+        Assertions.assertEquals("offering", eventHeaders["source"])
+        Assertions.assertEquals("deleted", eventHeaders["operation"])
+        Assertions.assertEquals(createdId, eventPayload.id)
 
         Assertions.assertEquals(0, offeringRepository.count())
     }
