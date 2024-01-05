@@ -12,6 +12,8 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringSerializer
 import org.awaitility.Awaitility.await
+import org.eda.ecommerce.data.models.Product
+import org.eda.ecommerce.data.models.events.ProductEvent
 import org.eda.ecommerce.data.repositories.ProductRepository
 import org.eda.ecommerce.helpers.KafkaTestHelper
 import org.junit.jupiter.api.*
@@ -58,8 +60,17 @@ class ProductTest {
     fun testCreationOnProductCreatedEvent() {
         val productUUID = UUID.randomUUID()
 
+        val productRecord = ProducerRecord<String, String>(
+            "product",
+            "{\"id\": \"${productUUID}\", \"color\": \"string\", \"description\": \"string\" }"
+        )
+        productRecord.headers()
+            .add("operation", "created".toByteArray())
+            .add("source", "product".toByteArray())
+            .add("timestamp", System.currentTimeMillis().toString().toByteArray())
+
         productProducer
-            .send(ProducerRecord("product", "{\"source\": \"product-service\", \"timestamp\": 1699910206866, \"type\": \"created\", \"content\": { \"id\": \"${productUUID}\", \"color\": \"string\", \"description\": \"string\" }}"))
+            .send(productRecord)
             .get()
 
         await().atMost(10, TimeUnit.SECONDS).untilAsserted {
