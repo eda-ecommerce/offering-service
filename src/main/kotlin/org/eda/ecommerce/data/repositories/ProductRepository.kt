@@ -13,4 +13,9 @@ class ProductRepository : PanacheRepositoryBase<Product, UUID> {
     fun countWithRequestContext() : Long {
         return count()
     }
+
+    @ActivateRequestContext
+    fun getFirstWithRequestContext() : Product {
+        return listAll().first()
+    }
 }
