@@ -73,7 +73,7 @@ class OfferingController {
     @APIResponses(
         APIResponse(
             responseCode = "201",
-            description = "Product created",
+            description = "Offering created",
         ),
         APIResponse(
             responseCode = "400",
