@@ -11,6 +11,7 @@ import io.vertx.core.json.JsonObject
 import jakarta.inject.Inject
 import jakarta.transaction.Transactional
 import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -25,6 +26,7 @@ import org.eda.ecommerce.data.repositories.OfferingRepository
 import org.eda.ecommerce.data.repositories.ProductRepository
 import org.eda.ecommerce.helpers.KafkaTestHelper
 import org.junit.jupiter.api.*
+import java.time.Duration
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -58,18 +60,6 @@ class ProductOfferingTest {
         return properties
     }
 
-    @BeforeAll
-    @Transactional
-    fun setup() {
-
-        val offeringEventJsonSerdeFactory = JsonSerdeFactory<Offering>()
-        consumer = KafkaConsumer(
-            consumerConfig(),
-            StringDeserializer(),
-            offeringEventJsonSerdeFactory.createDeserializer(Offering::class.java)
-        )
-    }
-
     @BeforeEach
     @Transactional
     fun cleanRepositoryAndKafkaTopics() {
@@ -83,6 +73,13 @@ class ProductOfferingTest {
     @BeforeEach
     fun setupKafkaHelpers() {
         productProducer = KafkaProducer(kafkaConfig, StringSerializer(), StringSerializer())
+
+        val offeringEventJsonSerdeFactory = JsonSerdeFactory<Offering>()
+        consumer = KafkaConsumer(
+            consumerConfig(),
+            StringDeserializer(),
+            offeringEventJsonSerdeFactory.createDeserializer(Offering::class.java)
+        )
     }
 
     @AfterEach
@@ -203,5 +200,73 @@ class ProductOfferingTest {
             .statusCode(400)
 
         Assertions.assertEquals(0, offeringRepository.count())
+    }
+
+    @Test
+    fun testCreateProductOnEventCreateOfferingSetProductToRetiredAndThenExpectOfferingEvent() {
+        consumer.subscribe(listOf("offering"))
+
+        val productUUID = UUID.randomUUID()
+
+        // Create product via Event
+        val productRecord = ProducerRecord<String, String>(
+            "product",
+            "{\"id\": \"${productUUID}\", \"color\": \"string\", \"description\": \"string\", \"status\": \"active\" }"
+        )
+        productRecord.headers()
+            .add("operation", "created".toByteArray())
+            .add("source", "product".toByteArray())
+            .add("timestamp", System.currentTimeMillis().toString().toByteArray())
+
+        productProducer
+            .send(productRecord)
+            .get()
+
+        Awaitility.await().atMost(10, TimeUnit.SECONDS).untilAsserted {
+            Assertions.assertEquals(1, productRepository.countWithRequestContext())
+        }
+
+        // Create offering via REST API for that product
+        val jsonBody: JsonObject = JsonObject()
+            .put("quantity", 1)
+            .put("price", 1.99F)
+            .put("productId", productUUID)
+
+        RestAssured.given()
+            .contentType("application/json")
+            .body(jsonBody.toString())
+            .`when`().post("/offering")
+            .then()
+            .statusCode(201)
+
+        // Set product to retired via Event
+        val productRetiredRecord = ProducerRecord<String, String>(
+            "product",
+            "{\"id\": \"${productUUID}\", \"color\": \"string\", \"description\": \"string\", \"status\": \"retired\" }"
+        )
+        productRetiredRecord.headers()
+            .add("operation", "updated".toByteArray())
+            .add("source", "product".toByteArray())
+            .add("timestamp", System.currentTimeMillis().toString().toByteArray())
+
+        productProducer
+            .send(productRetiredRecord)
+            .get()
+
+        Awaitility.await().atMost(10, TimeUnit.SECONDS).untilAsserted {
+            val product = productRepository.getFirstWithRequestContext()
+
+            Assertions.assertEquals(productUUID, product.id)
+            Assertions.assertEquals(ProductStatus.RETIRED, product.status)
+        }
+
+        // And expect retired events for offering
+        val records: ConsumerRecords<String, Offering> = consumer.poll(Duration.ofMillis(10000))
+
+        val event = records.records("offering").iterator().asSequence().toList().first()
+        val eventHeaders = event.headers().toList().associateBy({ it.key() }, { it.value().toString(Charsets.UTF_8) })
+
+        Assertions.assertEquals("offering", eventHeaders["source"])
+        Assertions.assertEquals("updated", eventHeaders["operation"])
     }
 }

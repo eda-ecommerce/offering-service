@@ -7,10 +7,7 @@ import jakarta.transaction.Transactional
 import jakarta.ws.rs.BadRequestException
 import jakarta.ws.rs.NotFoundException
 import org.eclipse.microprofile.reactive.messaging.Channel
-import org.eda.ecommerce.data.models.Offering
-import org.eda.ecommerce.data.models.CreateOfferingDTO
-import org.eda.ecommerce.data.models.ProductStatus
-import org.eda.ecommerce.data.models.UpdateOfferingDTO
+import org.eda.ecommerce.data.models.*
 import org.eda.ecommerce.data.models.events.OfferingCreatedEvent
 import org.eda.ecommerce.data.models.events.OfferingDeletedEvent
 import org.eda.ecommerce.data.models.events.OfferingUpdatedEvent
@@ -81,6 +78,7 @@ class OfferingService {
         offeringEventEmitter.sendMessageAndAwait(OfferingCreatedEvent(offering))
     }
 
+
     fun updateOffering(offeringDTO: UpdateOfferingDTO) : Boolean {
         val entity = offeringRepository.findById(offeringDTO.id) ?: return false
 
@@ -95,11 +93,27 @@ class OfferingService {
             this.product = product
         }
 
-        offeringRepository.persist(entity)
-
-        offeringEventEmitter.sendMessageAndAwait(OfferingUpdatedEvent(entity))
+        persistUpdatedOfferingAndSendEvent(entity)
 
         return true
+    }
+
+    @Transactional
+    fun persistUpdatedOfferingAndSendEvent(offering: Offering){
+        offeringRepository.persist(offering)
+
+        offeringEventEmitter.sendMessageAndAwait(OfferingUpdatedEvent(offering))
+    }
+
+    fun retireOfferingsWithRetiredProduct(productId: UUID) {
+        println("Retiring offerings with product id $productId")
+
+        val offerings = offeringRepository.list("product.id", productId)
+        offerings.forEach {
+            it.status = OfferingStatus.RETIRED
+
+            persistUpdatedOfferingAndSendEvent(it)
+        }
     }
 
 }

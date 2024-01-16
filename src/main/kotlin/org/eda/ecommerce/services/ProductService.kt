@@ -12,6 +12,9 @@ class ProductService {
     @Inject
     private lateinit var productRepository: ProductRepository
 
+    @Inject
+    private lateinit var offeringService: OfferingService
+
     fun getAll(): List<Product> {
         return productRepository.listAll()
     }
@@ -32,5 +35,6 @@ class ProductService {
             status = product.status
         }
 
+        offeringService.retireOfferingsWithRetiredProduct(entity.id)
     }
 }
