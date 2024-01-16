@@ -18,6 +18,7 @@ import org.eda.ecommerce.JsonSerdeFactory
 import org.eda.ecommerce.data.models.Offering
 import org.eda.ecommerce.data.models.OfferingStatus
 import org.eda.ecommerce.data.models.Product
+import org.eda.ecommerce.data.models.ProductStatus
 import org.eda.ecommerce.data.repositories.OfferingRepository
 import org.eda.ecommerce.data.repositories.ProductRepository
 import org.eda.ecommerce.helpers.KafkaTestHelper
@@ -88,6 +89,13 @@ class OfferingTest {
     fun createOffering () {
         val offering = Offering().apply { product = Product().apply { id = productId }; quantity = 1; price = 1.99F }
         this.offeringRepository.persist(offering)
+    }
+
+    @Transactional
+    fun setProductToRetired() {
+        val product = productRepository.findById(productId)
+        product?.status = ProductStatus.RETIRED
+        productRepository.persist(product)
     }
 
     @Test
@@ -185,6 +193,28 @@ class OfferingTest {
         Assertions.assertEquals(jsonBody.getValue("price"), eventPayload.price)
         Assertions.assertEquals(jsonBody.getValue("productId"), eventPayload.product?.id)
     }
+
+    @Test
+    fun testFailToCreateOfferingForRetiredProduct() {
+        // Retire product
+        setProductToRetired()
+
+        // Try to create offering
+        val jsonBody: JsonObject = JsonObject()
+            .put("quantity", 1)
+            .put("price", 1.99F)
+            .put("productId", productId)
+
+        given()
+            .contentType("application/json")
+            .body(jsonBody.toString())
+            .`when`().post("/offering")
+            .then()
+            .statusCode(400)
+
+        Assertions.assertEquals(0, offeringRepository.count())
+    }
+
 
     @Test
     fun testUpdate() {

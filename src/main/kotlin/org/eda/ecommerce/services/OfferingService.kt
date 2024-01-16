@@ -4,11 +4,12 @@ import io.smallrye.reactive.messaging.MutinyEmitter
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 import jakarta.transaction.Transactional
+import jakarta.ws.rs.BadRequestException
 import jakarta.ws.rs.NotFoundException
 import org.eclipse.microprofile.reactive.messaging.Channel
-import org.eclipse.microprofile.reactive.messaging.Emitter
 import org.eda.ecommerce.data.models.Offering
 import org.eda.ecommerce.data.models.CreateOfferingDTO
+import org.eda.ecommerce.data.models.ProductStatus
 import org.eda.ecommerce.data.models.UpdateOfferingDTO
 import org.eda.ecommerce.data.models.events.OfferingCreatedEvent
 import org.eda.ecommerce.data.models.events.OfferingDeletedEvent
@@ -62,8 +63,12 @@ class OfferingService {
 
     // It is unfortunately necessary to split the transformation of th DTO to the real Offering and persisting / emitting
     // for some weird transaction related issue that locks the database on findById and does not release the lock to save.
-    fun createNewEntity(createOfferingDTO: CreateOfferingDTO) : Offering{
+    fun createNewOfferingIfAllowed(createOfferingDTO: CreateOfferingDTO) : Offering{
         val offering = offeringDTOToOffering(createOfferingDTO)
+
+        if (offering.product?.status == ProductStatus.RETIRED) {
+            throw BadRequestException("Product with id ${createOfferingDTO.productId} is retired")
+        }
 
         persistWithTransactionAndEmit(offering)
         return offering

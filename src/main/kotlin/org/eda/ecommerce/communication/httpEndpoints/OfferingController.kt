@@ -77,7 +77,7 @@ class OfferingController {
         )
     )
     fun createNew(createOfferingDTO: CreateOfferingDTO): Response {
-        val newOffering = offeringService.createNewEntity(createOfferingDTO)
+        val newOffering = offeringService.createNewOfferingIfAllowed(createOfferingDTO)
 
         return Response.created(URI.create("/offering/" + newOffering.id)).build()
     }
