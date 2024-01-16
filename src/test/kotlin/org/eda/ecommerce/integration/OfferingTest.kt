@@ -52,7 +52,7 @@ class OfferingTest {
     @BeforeAll
     @Transactional
     fun setup() {
-        val product = Product().apply { id = productId }
+        val product = Product().apply { id = productId; status = ProductStatus.ACTIVE }
         productRepository.persist(product)
 
         val offeringEventJsonSerdeFactory = JsonSerdeFactory<Offering>()

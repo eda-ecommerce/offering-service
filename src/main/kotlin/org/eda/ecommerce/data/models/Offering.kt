@@ -13,7 +13,7 @@ class Offering : PanacheEntityBase() {
     @Column(name = "id")
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
-    var id: UUID? = null
+    lateinit var id: UUID
 
     var status: OfferingStatus = OfferingStatus.ACTIVE
 

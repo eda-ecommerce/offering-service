@@ -10,9 +10,9 @@ import java.util.*
 class Product : PanacheEntityBase() {
 
     @Id
-    var id: UUID? = null
+    lateinit var id: UUID
 
-    var status: ProductStatus? = null
+    lateinit var status: ProductStatus
 
     override fun toString(): String {
         return "Product(id=${id}, status=$status)"
