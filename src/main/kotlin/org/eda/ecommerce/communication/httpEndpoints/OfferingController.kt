@@ -74,6 +74,10 @@ class OfferingController {
         APIResponse(
             responseCode = "201",
             description = "Product created",
+        ),
+        APIResponse(
+            responseCode = "400",
+            description = "Offering could not be created, the product is possibly retired",
         )
     )
     fun createNew(createOfferingDTO: CreateOfferingDTO): Response {
