@@ -10,15 +10,12 @@ import io.smallrye.reactive.messaging.kafka.companion.KafkaCompanion
 import io.vertx.core.json.JsonObject
 import jakarta.inject.Inject
 import jakarta.transaction.Transactional
-import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.awaitility.Awaitility
-import org.eda.ecommerce.JsonSerdeFactory
 import org.eda.ecommerce.data.models.Offering
 import org.eda.ecommerce.data.models.OfferingStatus
 import org.eda.ecommerce.data.models.ProductStatus
@@ -249,10 +246,14 @@ class ProductOfferingTest {
         // And expect retired events for offering
         val records: ConsumerRecords<String, Offering> = consumer.poll(Duration.ofMillis(10000))
 
-        val event = records.records("offering").iterator().asSequence().toList().first()
+        Assertions.assertEquals(2, records.count())
+
+        val event = records.records("offering").iterator().asSequence().toList()[1]
         val eventHeaders = event.headers().toList().associateBy({ it.key() }, { it.value().toString(Charsets.UTF_8) })
+        val eventPayload = event.value()
 
         Assertions.assertEquals("offering", eventHeaders["source"])
         Assertions.assertEquals("updated", eventHeaders["operation"])
+        Assertions.assertEquals(OfferingStatus.RETIRED, eventPayload.status)
     }
 }
