@@ -10,11 +10,8 @@ import io.smallrye.reactive.messaging.kafka.companion.KafkaCompanion
 import io.vertx.core.json.JsonObject
 import jakarta.inject.Inject
 import jakarta.transaction.Transactional
-import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import org.apache.kafka.common.serialization.StringDeserializer
-import org.eda.ecommerce.JsonSerdeFactory
 import org.eda.ecommerce.data.models.Offering
 import org.eda.ecommerce.data.models.OfferingStatus
 import org.eda.ecommerce.data.models.Product
@@ -54,35 +51,20 @@ class OfferingTest {
     fun setup() {
         val product = Product().apply { id = productId; status = ProductStatus.ACTIVE }
         productRepository.persist(product)
-
-        val offeringEventJsonSerdeFactory = JsonSerdeFactory<Offering>()
-        consumer = KafkaConsumer(
-            consumerConfig(),
-            StringDeserializer(),
-            offeringEventJsonSerdeFactory.createDeserializer(Offering::class.java)
-        )
     }
 
     @BeforeEach
     @Transactional
     fun cleanRepositoryAndKafkaTopics() {
         KafkaTestHelper.clearTopicIfNotEmpty(companion, "offering")
+        consumer = KafkaTestHelper.setupConsumer<Offering>(kafkaConfig)
 
         offeringRepository.deleteAll()
     }
 
     @AfterEach
     fun unsubscribeConsumer() {
-        consumer.unsubscribe()
-    }
-
-    fun consumerConfig(): Properties {
-        val properties = Properties()
-        properties.putAll(kafkaConfig)
-        properties[ConsumerConfig.GROUP_ID_CONFIG] = "test-group-id"
-        properties[ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG] = "true"
-        properties[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
-        return properties
+        KafkaTestHelper.deleteConsumer(consumer)
     }
 
     @Transactional

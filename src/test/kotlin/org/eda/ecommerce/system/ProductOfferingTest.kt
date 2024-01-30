@@ -51,15 +51,6 @@ class ProductOfferingTest {
     @Inject
     lateinit var productRepository: ProductRepository
 
-    fun consumerConfig(): Properties {
-        val properties = Properties()
-        properties.putAll(kafkaConfig)
-        properties[ConsumerConfig.GROUP_ID_CONFIG] = "test-group-id"
-        properties[ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG] = "true"
-        properties[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
-        return properties
-    }
-
     @BeforeEach
     @Transactional
     fun cleanRepositoryAndKafkaTopics() {
@@ -74,17 +65,12 @@ class ProductOfferingTest {
     fun setupKafkaHelpers() {
         productProducer = KafkaProducer(kafkaConfig, StringSerializer(), StringSerializer())
 
-        val offeringEventJsonSerdeFactory = JsonSerdeFactory<Offering>()
-        consumer = KafkaConsumer(
-            consumerConfig(),
-            StringDeserializer(),
-            offeringEventJsonSerdeFactory.createDeserializer(Offering::class.java)
-        )
+        consumer = KafkaTestHelper.setupConsumer<Offering>(kafkaConfig)
     }
 
     @AfterEach
     fun unsubscribeConsumer() {
-        consumer.unsubscribe()
+        KafkaTestHelper.deleteConsumer(consumer)
     }
 
     @Test
