@@ -12,7 +12,6 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses
 import org.eda.ecommerce.data.models.Product
 import org.eda.ecommerce.services.ProductService
-import java.net.URI
 import java.util.*
 
 @Path("/products")
@@ -36,7 +35,7 @@ class ProductController {
     }
 
     @GET
-    @Path("/{id}")
+    @Path("{id}")
     @Operation(summary = "Returns a Product by its ID.")
     @APIResponses(
         APIResponse(
@@ -48,7 +47,7 @@ class ProductController {
     )
     @Consumes(MediaType.TEXT_PLAIN)
     fun getById(
-        @QueryParam("id")
+        @PathParam("id")
         @Parameter(
             name = "id",
             description = "The ID of the Product to be returned.",

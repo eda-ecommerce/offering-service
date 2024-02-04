@@ -40,7 +40,7 @@ class OfferingController {
     }
 
     @GET
-    @Path("/{id}")
+    @Path("{id}")
     @Consumes(MediaType.TEXT_PLAIN)
     @Operation(summary = "Returns a Offering by its ID.")
     @APIResponses(
@@ -104,7 +104,7 @@ class OfferingController {
     }
 
     @DELETE
-    @Path("/{id}")
+    @Path("{id}")
     @Operation(summary = "Deletes an existing Offering.")
     @APIResponses(
         APIResponse(responseCode = "204", description = "Offering deleted"),
