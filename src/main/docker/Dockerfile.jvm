@@ -94,6 +94,8 @@ USER 185
 RUN mkdir -p /deployments/databases && \
     chown 185 /deployments/databases
 
+VOLUME ["/deployments/databases"]
+
 ENV JAVA_OPTS_APPEND="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
 ENV JAVA_APP_JAR="/deployments/quarkus-run.jar"
 
