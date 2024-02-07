@@ -13,7 +13,7 @@
       username: "template"
       password: "secret"
       jdbc:
-        url: "jdbc:sqlite:test.db"
+        url: "jdbc:sqlite:databases/test.db"
     kafka:
       devservices:
         port: 32801
@@ -40,7 +40,7 @@ quarkus:
     username: "template"
     password: "secret"
     jdbc:
-      url: "jdbc:sqlite:database.db"
+      url: "jdbc:sqlite:databases/database.db"
 
 kafka:
   auto:

@@ -43,7 +43,4 @@ nb-configuration.xml
 /.quarkus/cli/plugins/
 
 # Sqlite Database
-database.db
-
-# Sqlite test Database
-test.db
+databases/*.db
